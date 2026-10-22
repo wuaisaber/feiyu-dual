@@ -1,0 +1,29 @@
+# ===== 运行时数据（绝对不能进仓库）=====
+# 里面有 DeepSeek API Key、B站 Cookie、QQ 号、聊天记忆
+data/*
+!data/config.example.json
+!data/stickers/
+!data/stickers/*.png
+
+# ===== NapCat 二进制（约 110MB）=====
+# 不随仓库分发：一是体积，二是 NapCat 的许可不是标准开源
+# 首次运行 start.bat 会自动下载
+napcat/
+
+# ===== Python =====
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# ===== 日志与临时文件 =====
+*.log
+*.tmp
+*.broken.json
+elevating
+
+# ===== 系统 =====
+Thumbs.db
+Desktop.ini
+.DS_Store

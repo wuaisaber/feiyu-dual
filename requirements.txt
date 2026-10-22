@@ -1,0 +1,4 @@
+# 运行时只依赖三个库，都很小
+httpx>=0.27
+websocket-client>=1.7
+qrcode[pil]>=7.4

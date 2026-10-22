@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>飞鱼双栖 · 大肥鱼</title>
+<style>
+:root{
+  --primary:#3370ff; --primary-hover:#245bdb; --primary-soft:#e8f0ff;
+  --text:#1f2329; --text-2:#646a73; --text-3:#8f959e;
+  --bg:#f5f6f7; --panel:#ffffff;
+  --border:#e5e6eb; --border-2:#dee0e3;
+  --success:#34c724; --warning:#ff8800; --danger:#f54a45;
+  --radius:8px; --shadow:0 1px 3px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--text);
+  font:13px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit}
+
+/* ---------- 布局 ---------- */
+.layout{display:grid;grid-template-columns:208px 1fr;height:100vh;overflow:hidden}
+.sidebar{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:14px 10px}
+.brand{display:flex;align-items:center;gap:9px;padding:6px 10px 18px;font-size:15px;font-weight:600;letter-spacing:.2px}
+.brand .fish{font-size:18px}
+nav{display:flex;flex-direction:column;gap:2px}
+nav button{
+  display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;
+  border:0;background:none;border-radius:6px;color:var(--text-2);font-size:13px;
+  text-align:left;cursor:pointer;transition:background .15s,color .15s;
+}
+nav button:hover{background:#f2f3f5;color:var(--text)}
+nav button.on{background:var(--primary-soft);color:var(--primary);font-weight:500}
+nav button .ico{width:15px;text-align:center;font-size:13px;opacity:.85}
+.side-foot{margin-top:auto;padding:12px 10px 2px;border-top:1px solid var(--border);color:var(--text-3);font-size:11.5px}
+.main{overflow-y:auto}
+.body{padding:26px 30px;max-width:1080px}
+
+/* 分页：只有当前页可见（这一条上一版漏了，导致导航点了没反应） */
+section{display:none}
+section.on{display:block}
+
+/* ---------- 卡片 ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+.card h3{font-size:12.5px;font-weight:500;color:var(--text-2);margin-bottom:10px;letter-spacing:.1px}
+.card + .card{margin-top:16px}
+.big{font-size:21px;font-weight:600;line-height:1.3;display:flex;align-items:center}
+.hint{font-size:12px;color:var(--text-3);margin-top:6px;line-height:1.5}
+
+/* ---------- 状态点 ---------- */
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:#c9cdd4;margin-right:9px;flex:0 0 auto}
+.dot.g{background:var(--success)}
+.dot.y{background:var(--warning)}
+.dot.r{background:var(--danger)}
+.dot.n{background:#c9cdd4}
+
+/* ---------- 表单 ---------- */
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0 4px}
+label{display:block;font-size:12px;color:var(--text-2);margin:14px 0 6px}
+label.check{display:flex;align-items:center;gap:8px;margin:12px 0;color:var(--text);font-size:13px;cursor:pointer}
+input,select,textarea{
+  width:100%;border:1px solid var(--border-2);border-radius:6px;padding:7px 11px;
+  font:inherit;color:var(--text);background:#fff;outline:none;
+  transition:border-color .15s,box-shadow .15s;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2.5px rgba(51,112,255,.10)}
+input[type=checkbox]{width:auto;height:15px;width:15px;accent-color:var(--primary);cursor:pointer}
+textarea{min-height:76px;resize:vertical;line-height:1.5}
+input::placeholder,textarea::placeholder{color:#b7bcc4}
+
+/* ---------- 按钮 ---------- */
+.btn{
+  background:var(--primary);color:#fff;border:0;border-radius:6px;
+  padding:7px 15px;font-size:13px;font-weight:500;cursor:pointer;
+  transition:background .15s;white-space:nowrap;
+}
+.btn:hover{background:var(--primary-hover)}
+.btn.sec{background:#fff;color:var(--text);border:1px solid var(--border-2)}
+.btn.sec:hover{background:#f5f6f7}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.danger{background:#fff;color:var(--danger);border:1px solid #fbc4c2}
+.btn.danger:hover{background:#fef1f0}
+
+/* ---------- 列表 / 日志 ---------- */
+.ev{padding:11px 0;border-bottom:1px solid #f2f3f5;font-size:12.5px;color:var(--text-2);line-height:1.6}
+.ev:last-child{border-bottom:0}
+.ev b{color:var(--text);font-weight:500}
+.scroll{max-height:420px;overflow-y:auto;margin-top:4px}
+.scroll::-webkit-scrollbar{width:6px}
+.scroll::-webkit-scrollbar-thumb{background:#dcdfe4;border-radius:3px}
+
+/* ---------- 二维码 ---------- */
+.qr{background:#fff;border:1px solid var(--border);padding:12px;border-radius:var(--radius);display:inline-block}
+
+/* ---------- 两栏 ---------- */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--border);padding:8px}
+  .brand,.side-foot{display:none}
+  nav{flex-direction:row}
+  .body{padding:18px}
+  .split{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="fish">🐟</span><span>飞鱼双栖</span></div>
+    <nav>
+      <button class="on" data-tab="overview"><span class="ico">◉</span>总览</button>
+      <button data-tab="settings"><span class="ico">⚙</span>设置</button>
+      <button data-tab="bili"><span class="ico">▣</span>B站登录</button>
+      <button data-tab="qqhist"><span class="ico">◇</span>QQ 轨迹</button>
+      <button data-tab="bilihist"><span class="ico">◆</span>B站轨迹</button>
+      <button data-tab="logs"><span class="ico">≡</span>日志</button>
+    </nav>
+    <div class="side-foot"><span id="ver">v0.1.0</span> · 一个大肥鱼</div>
+  </aside>
+
+  <div class="main">
+    <div class="body">
+
+      <section id="tab-overview" class="on">
+        <div class="grid">
+          <div class="card">
+            <h3>DeepSeek</h3>
+            <div class="big"><span id="llm-dot" class="dot n"></span><span id="llm-text">未配置</span></div>
+            <div class="hint" id="llm-model"></div>
+          </div>
+          <div class="card">
+            <h3>QQ · OneBot</h3>
+            <div class="big"><span id="qq-dot" class="dot n"></span><span id="qq-text">未启动</span></div>
+            <div class="hint" id="qq-hint"></div>
+          </div>
+          <div class="card">
+            <h3>B站</h3>
+            <div class="big"><span id="bili-dot" class="dot n"></span><span id="bili-text">未登录</span></div>
+            <div class="hint" id="bili-hint"></div>
+          </div>
+          <div class="card">
+            <h3>人格 · 记忆</h3>
+            <div class="big" id="persona-text">—</div>
+            <div class="hint" id="mem-hint"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>通道控制</h3>
+          <div class="row" style="margin-top:2px">
+            <button class="btn" onclick="act('qq/start')">启动 QQ</button>
+            <button class="btn sec" onclick="act('qq/stop')">停止 QQ</button>
+            <button class="btn" onclick="act('bili/start')">启动 B站巡逻</button>
+            <button class="btn sec" onclick="act('bili/stop')">停止 B站</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>最近动作</h3>
+          <div id="events" class="scroll"></div>
+        </div>
+      </section>
+
+      <section id="tab-settings">
+        <div class="split">
+          <div class="card">
+            <h3>模型</h3>
+            <label>DeepSeek API Key</label>
+            <input id="api_key" type="password" placeholder="sk-..."/>
+            <label>接口地址</label>
+            <input id="base_url" placeholder="https://api.deepseek.com"/>
+            <label>模型名</label>
+            <input id="model" placeholder="deepseek-chat"/>
+            <label>备用模型（可留空）</label>
+            <input id="fallback_model" placeholder="主模型失败时自动切换"/>
+            <label>温度</label>
+            <input id="temperature" type="number" step="0.1" placeholder="1.2"/>
+            <div class="row">
+              <button class="btn" onclick="saveLLM()">保存</button>
+              <button class="btn sec" onclick="testLLM()">测试连接</button>
+            </div>
+            <div class="hint" id="llm-test"></div>
+          </div>
+
+          <div class="card">
+            <h3>人格</h3>
+            <label>当前人格</label>
+            <select id="persona_active"></select>
+            <label>自定义人格（JSON，可留空）</label>
+            <textarea id="persona_custom" placeholder='{"我的鱼":{"title":"我的鱼","vibe":"...","style":["..."]}}'></textarea>
+            <div class="row"><button class="btn" onclick="savePersona()">保存人格</button></div>
+            <div class="hint">人格两端共用：QQ 群和 B 站评论区是同一个人。</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>QQ 接入 · NapCat / OneBot 11</h3>
+          <div class="split">
+            <div>
+              <label>正向 WebSocket 地址</label>
+              <input id="ws_url" placeholder="ws://127.0.0.1:3001"/>
+              <label>Access Token</label>
+              <input id="access_token" type="password" placeholder="NapCat 里配的 token"/>
+              <label>允许的群号（逗号分隔，留空=全部）</label>
+              <input id="allowed_groups" placeholder="123456,789012"/>
+              <label>允许的私聊 QQ（留空=全部）</label>
+              <input id="allowed_friends"/>
+            </div>
+            <div>
+              <label class="check"><input id="at_only" type="checkbox"/> 只有 @ 我才回</label>
+              <label>不 @ 时每 N 条消息接一次话（0=从不）</label>
+              <input id="auto_chat_every" type="number" min="0"/>
+              <label>回复字数上限</label>
+              <input id="qq_max_chars" type="number" min="10"/>
+              <label class="check"><input id="sticker_enabled" type="checkbox"/> 启用表情包</label>
+              <label>表情包目录（相对项目根）</label>
+              <input id="sticker_dir" placeholder="data/stickers"/>
+              <div class="hint">放 png / jpg / gif 进去，文件名就是表情名（如「开心.png」）。模型会自己挑合适的用。</div>
+              <div class="row"><button class="btn" onclick="saveQQ()">保存</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>B站行为</h3>
+          <div class="split">
+            <div>
+              <label class="check"><input id="bili_dry_run" type="checkbox"/> 演练模式（只生成不发）</label>
+              <label>每日最多发出条数</label>
+              <input id="bili_daily" type="number" min="1"/>
+              <label>每次动作前随机等待（秒）</label>
+              <div class="row" style="margin:6px 0 0">
+                <input id="bili_dmin" type="number" min="5" style="flex:1" placeholder="最小"/>
+                <input id="bili_dmax" type="number" min="5" style="flex:1" placeholder="最大"/>
+              </div>
+              <label>每轮逛几个视频</label>
+              <input id="bili_videos" type="number" min="1"/>
+              <label>评论字数上限</label>
+              <input id="bili_max_chars" type="number" min="10"/>
+            </div>
+            <div>
+              <label class="check"><input id="bili_comment" type="checkbox"/> 主动评论推荐流</label>
+              <label class="check"><input id="bili_reply" type="checkbox"/> 回复 @ 和评论</label>
+              <label class="check"><input id="bili_dm" type="checkbox"/> 回复私信（实验性）</label>
+              <label class="check"><input id="bili_hot" type="checkbox"/> 参考热评</label>
+              <label class="check"><input id="bili_sub" type="checkbox"/> 参考字幕</label>
+              <label>跳过含这些词的视频</label>
+              <input id="bili_skip" placeholder="抽奖,广告"/>
+              <label>评论预设口头禅（逗号分隔）</label>
+              <input id="bili_phrases"/>
+              <div class="row"><button class="btn" onclick="saveBili()">保存</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>安全</h3>
+          <label>屏蔽词（逗号分隔）</label>
+          <input id="banned_words"/>
+          <div class="row">
+            <button class="btn" onclick="saveSafety()">保存</button>
+            <button class="btn danger" onclick="clearMem()">清空对话记忆</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-bili">
+        <div class="card">
+          <h3>扫码登录 B 站</h3>
+          <div class="row" style="margin:2px 0 6px">
+            <button class="btn" onclick="startQR()">生成二维码</button>
+            <button class="btn sec" onclick="logoutBili()">退出登录</button>
+          </div>
+          <div id="qrbox" style="margin:14px 0"></div>
+          <div class="hint" id="qrmsg">用手机 B 站 App 扫码。Cookie 只存在本机，不会外传。</div>
+        </div>
+      </section>
+
+      <section id="tab-qqhist">
+        <div class="grid" id="qq-stat"></div>
+        <div class="card">
+          <h3>QQ 轨迹 · 群回复 / 私聊回复</h3>
+          <div class="row" id="qq-filter" style="margin:2px 0 8px"></div>
+          <div class="hint">✓ 表示已真实发出；「演练」表示生成了但未发送。</div>
+          <div id="qq-list" class="scroll" style="max-height:540px"></div>
+        </div>
+      </section>
+
+      <section id="tab-bilihist">
+        <div class="grid" id="bili-stat"></div>
+        <div class="card">
+          <h3>B 站轨迹 · 评论 / 回@ / 私信</h3>
+          <div class="row" id="bili-filter" style="margin:2px 0 8px"></div>
+          <div class="hint">演练记录也会留在这里，可以先看它想说什么再决定开不开真发。</div>
+          <div id="bili-list" class="scroll" style="max-height:540px"></div>
+        </div>
+      </section>
+
+      <section id="tab-logs">
+        <div class="card">
+          <h3>事件流</h3>
+          <div id="events2" class="scroll" style="max-height:620px"></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('section').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  const sec=$('tab-'+b.dataset.tab);
+  if(sec) sec.classList.add('on');
+  if(b.dataset.tab==='qqhist') renderHist('qq');
+  if(b.dataset.tab==='bilihist') renderHist('bili');
+});
+
+async function api(path,opt){const r=await fetch('/api/'+path,opt||{});return await r.json();}
+async function post(path,body){return api(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});}
+function dot(id,cls){$(id).className='dot '+cls;}
+function fmt(ts){const d=new Date(ts*1000);return d.toLocaleTimeString('zh-CN',{hour12:false});}
+function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+async function refresh(){
+  let s; try{ s=await api('status'); }catch(e){ return; }
+  $('ver').textContent='v'+s.version;
+  dot('llm-dot',s.llm_ready?'g':'r');
+  $('llm-text').textContent=s.llm_ready?'已配置':'未配置';
+  $('llm-model').textContent=s.llm_model||'';
+
+  const q=s.qq||{};
+  dot('qq-dot',q.connected?'g':'n');
+  $('qq-text').textContent=q.connected?'已连接':'未连接';
+  $('qq-hint').textContent=q.connected
+    ? ('账号 '+(q.self_id||'?')+' · 收 '+q.events+' 条 · 回 '+q.replies+' 条')
+    : (q.error||'等待 NapCat');
+
+  const b=s.bili||{};
+  dot('bili-dot',b.running?'g':(b.halted?'r':(b.logged_in?'y':'n')));
+  $('bili-text').textContent=b.running?'巡逻中':(b.halted?'已停机':(b.logged_in?'已登录':'未登录'));
+  $('bili-hint').textContent=b.halted?b.halt_reason:(b.last_action||('今日已发 '+(b.comments_today||0)+'/'+(b.limit||0)));
+
+  $('persona-text').textContent=s.persona||'—';
+  const m=s.memory||{};
+  $('mem-hint').textContent='对话 '+m.messages+' 条 · 标记 '+m.marks+' 个';
+
+  const evs=(s.events||[]).map(e=>'<div class="ev"><b>'+fmt(e.ts)+'</b> ['+e.channel+'] '+esc(e.text)+'</div>').join('');
+  if(evs){$('events').innerHTML=evs;$('events2').innerHTML=evs;}
+}
+
+async function act(p){
+  const r=await post(p);
+  refresh();
+  if(r&&r.error) alert(r.error);
+}
+
+async function saveLLM(){
+  await post('config',{section:'llm',values:{
+    api_key:$('api_key').value.trim(),
+    base_url:$('base_url').value.trim(),
+    model:$('model').value.trim(),
+    fallback_model:$('fallback_model').value.trim(),
+    temperature:parseFloat($('temperature').value)||1.2}});
+  alert('已保存'); refresh();
+}
+async function testLLM(){
+  $('llm-test').textContent='测试中…';
+  const r=await post('llm/test');
+  $('llm-test').textContent=r.ok?('连接正常：'+r.reply):('失败：'+r.error);
+}
+async function savePersona(){
+  let custom={};
+  try{ custom=JSON.parse($('persona_custom').value||'{}'); }
+  catch(e){ alert('自定义人格不是合法 JSON'); return; }
+  await post('config',{section:'persona',values:{active:$('persona_active').value,custom}});
+  alert('已保存'); refresh();
+}
+async function saveQQ(){
+  await post('config',{section:'qq',values:{
+    ws_url:$('ws_url').value.trim(),
+    access_token:$('access_token').value.trim(),
+    allowed_groups:$('allowed_groups').value.split(',').map(x=>parseInt(x)).filter(x=>!isNaN(x)),
+    allowed_friends:$('allowed_friends').value.split(',').map(x=>parseInt(x)).filter(x=>!isNaN(x)),
+    at_only:$('at_only').checked,
+    auto_chat_every:parseInt($('auto_chat_every').value)||0,
+    max_reply_chars:parseInt($('qq_max_chars').value)||60,
+    sticker_enabled:$('sticker_enabled').checked,
+    sticker_dir:$('sticker_dir').value.trim()||'data/stickers'}});
+  alert('已保存'); refresh();
+}
+async function saveBili(){
+  await post('config',{section:'bili',values:{
+    dry_run:$('bili_dry_run').checked,
+    daily_limit:parseInt($('bili_daily').value)||20,
+    delay_min:parseInt($('bili_dmin').value)||15,
+    delay_max:parseInt($('bili_dmax').value)||45,
+    videos_per_round:parseInt($('bili_videos').value)||15,
+    max_reply_chars:parseInt($('bili_max_chars').value)||40,
+    comment_enabled:$('bili_comment').checked,
+    reply_enabled:$('bili_reply').checked,
+    dm_enabled:$('bili_dm').checked,
+    use_hot_comments:$('bili_hot').checked,
+    use_subtitle:$('bili_sub').checked,
+    no_comment_keywords:$('bili_skip').value.split(',').map(x=>x.trim()).filter(Boolean),
+    phrases:$('bili_phrases').value.split(',').map(x=>x.trim()).filter(Boolean)}});
+  alert('已保存'); refresh();
+}
+async function saveSafety(){
+  await post('config',{section:'safety',values:{
+    banned_words:$('banned_words').value.split(',').map(x=>x.trim()).filter(Boolean)}});
+  alert('已保存');
+}
+async function clearMem(){
+  if(!confirm('清空所有对话记忆？')) return;
+  await post('memory/clear',{});
+  alert('已清空'); refresh();
+}
+
+const HST={qq:{kind:''},bili:{kind:''}};
+function statCard(label,val){
+  return '<div class="card"><h3>'+label+'</h3><div class="big">'+val+'</div></div>';
+}
+function histRow(a){
+  const ok=a.ok?'<span style="color:var(--success)">✓</span>':'<span style="color:var(--warning)">演练</span>';
+  return '<div class="ev">'+ok+' <b>'+fmt(a.ts)+'</b> · '+esc(a.kind)+' → '+esc(a.target)
+    +'<br/><span style="color:#3d444d">'+esc(a.content)+'</span></div>';
+}
+async function renderHist(plat){
+  let r;
+  try{ r=await api('history?platform='+plat+'&kind='+encodeURIComponent(HST[plat].kind)+'&limit=300'); }
+  catch(e){ return; }
+  const s=r.stats||{total:0,today:0,last_ts:0,kinds:{}};
+  $(plat+'-stat').innerHTML=statCard('累计',s.total+' 条')
+    +statCard('今日',s.today+' 条')
+    +statCard('最近一次',s.last_ts?fmt(s.last_ts):'—');
+  const kinds=Object.keys(s.kinds||{});
+  let f='<button class="btn '+(HST[plat].kind?'sec':'')+'" onclick="setKind(\''+plat+'\',\'\')">全部 ('+s.total+')</button>';
+  kinds.forEach(k=>{
+    const on=k===HST[plat].kind;
+    f+='<button class="btn '+(on?'':'sec')+'" onclick="setKind(\''+plat+'\',\''+k+'\')">'+esc(k)+' ('+s.kinds[k]+')</button>';
+  });
+  $(plat+'-filter').innerHTML=f;
+  const items=r.items||[];
+  $(plat+'-list').innerHTML=items.length
+    ? items.map(histRow).join('')
+    : '<div class="hint">还没有记录。'+(plat==='qq'?'启动 QQ 通道并让它回一句话':'开启 B站巡逻（演练模式也会记录）')+'后，这里会出现。</div>';
+}
+function setKind(plat,k){ HST[plat].kind=k; renderHist(plat); }
+
+let qrTimer=null,qrKey=null;
+async function startQR(){
+  $('qrmsg').textContent='生成中…';
+  $('qrbox').innerHTML='';
+  const r=await post('bili/qr');
+  if(!r.ok){ $('qrmsg').textContent='失败：'+r.error; return; }
+  qrKey=r.key;
+  $('qrbox').innerHTML='<div class="qr"><img src="'+r.img+'" width="200" height="200"/></div>';
+  $('qrmsg').textContent='等待扫码…';
+  if(qrTimer) clearInterval(qrTimer);
+  qrTimer=setInterval(async()=>{
+    const p=await api('bili/qr/poll?key='+encodeURIComponent(qrKey));
+    if(p.status==='success'){ clearInterval(qrTimer); $('qrmsg').textContent='登录成功：'+((p.user&&p.user.uname)||''); refresh(); }
+    else if(p.status==='scanned'){ $('qrmsg').textContent='已扫码，请在手机上确认…'; }
+    else if(p.status==='expired'){ clearInterval(qrTimer); $('qrmsg').textContent='二维码已过期，请重新生成'; }
+    else { $('qrmsg').textContent=p.detail||'等待扫码…'; }
+  },2200);
+}
+async function logoutBili(){
+  await post('bili/logout');
+  $('qrmsg').textContent='已退出登录';
+  refresh();
+}
+
+async function loadConfig(){
+  const c=await api('config/get');
+  if(!c.ok) return;
+  const l=c.llm||{},q=c.qq||{},b=c.bili||{},s=c.safety||{},p=c.persona||{};
+  $('api_key').value=l.api_key||'';
+  $('base_url').value=l.base_url||'';
+  $('model').value=l.model||'';
+  $('fallback_model').value=l.fallback_model||'';
+  $('temperature').value=l.temperature||1.2;
+
+  const names=await api('personas');
+  const opts=names.options||[];
+  $('persona_active').innerHTML=opts.map(o=>'<option value="'+o.key+'">'+o.title+'</option>').join('');
+  $('persona_active').value=p.active||'default';
+  const custom=p.custom||{};
+  $('persona_custom').value=Object.keys(custom).length?JSON.stringify(custom,null,1):'';
+
+  $('ws_url').value=q.ws_url||'';
+  $('access_token').value=q.access_token||'';
+  $('allowed_groups').value=(q.allowed_groups||[]).join(',');
+  $('allowed_friends').value=(q.allowed_friends||[]).join(',');
+  $('at_only').checked=!!q.at_only;
+  $('auto_chat_every').value=q.auto_chat_every||0;
+  $('qq_max_chars').value=q.max_reply_chars||60;
+  $('sticker_enabled').checked=!!q.sticker_enabled;
+  $('sticker_dir').value=q.sticker_dir||'data/stickers';
+
+  $('bili_dry_run').checked=!!b.dry_run;
+  $('bili_daily').value=b.daily_limit||20;
+  $('bili_dmin').value=b.delay_min||15;
+  $('bili_dmax').value=b.delay_max||45;
+  $('bili_videos').value=b.videos_per_round||15;
+  $('bili_max_chars').value=b.max_reply_chars||40;
+  $('bili_comment').checked=!!b.comment_enabled;
+  $('bili_reply').checked=!!b.reply_enabled;
+  $('bili_dm').checked=!!b.dm_enabled;
+  $('bili_hot').checked=!!b.use_hot_comments;
+  $('bili_sub').checked=!!b.use_subtitle;
+  $('bili_skip').value=(b.no_comment_keywords||[]).join(',');
+  $('bili_phrases').value=(b.phrases||[]).join(',');
+
+  $('banned_words').value=(s.banned_words||[]).join(',');
+  if(!(l.api_key||'').trim()){
+    document.querySelector('nav button[data-tab=settings]').click();
+  }
+}
+
+loadConfig();
+refresh();
+renderHist('qq');
+renderHist('bili');
+setInterval(refresh,3000);
+</script>
+</body>
+</html>

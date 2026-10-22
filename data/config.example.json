@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "llm": {
+    "api_key": "",
+    "base_url": "https://api.deepseek.com",
+    "model": "deepseek-chat",
+    "fallback_model": "",
+    "temperature": 1.2,
+    "max_tokens": 256,
+    "timeout": 60,
+    "retries": 3
+  },
+  "persona": {
+    "active": "default",
+    "custom": {}
+  },
+  "qq": {
+    "enabled": false,
+    "ws_url": "ws://127.0.0.1:3001",
+    "access_token": "",
+    "self_id": 0,
+    "allowed_groups": [],
+    "allowed_friends": [],
+    "at_only": true,
+    "auto_chat_every": 0,
+    "max_reply_chars": 60,
+    "reply_emoji": true,
+    "sticker_enabled": false,
+    "sticker_dir": "data/stickers"
+  },
+  "bili": {
+    "enabled": false,
+    "dry_run": true,
+    "max_reply_chars": 40,
+    "daily_limit": 5,
+    "delay_min": 180,
+    "delay_max": 600,
+    "videos_per_round": 5,
+    "comment_enabled": true,
+    "reply_enabled": true,
+    "dm_enabled": false,
+    "use_hot_comments": true,
+    "use_subtitle": false,
+    "owner_name": "",
+    "phrases": [],
+    "no_comment_keywords": ["抽奖", "广告"]
+  },
+  "safety": {
+    "banned_words": [],
+    "strip_markdown": true,
+    "history_rounds": 8,
+    "cooldown_seconds": 3,
+    "max_input_chars": 500
+  },
+  "web": {
+    "host": "127.0.0.1",
+    "port": 8787,
+    "password": ""
+  }
+}
